@@ -22,18 +22,23 @@ def home():
 
     if request.method == 'POST':
         user_id = request.form['user_id']
+        user = db.session.query(User).get(user_id)
         food = request.form['food']
 
         existing_food = Food.query.filter_by(name=food).first()
         if existing_food:
             flash('Food already exists')
+            if(not existing_food in user.foods):
+                user.foods.append(existing_food)
+
 
         else:
             new_food = Food(food)
             db.session.add(new_food)
-            db.session.commit()
             flash('Food {} successfully added'.format(food))
+            user.foods.append(new_food)
 
+    db.session.commit()
 
     return render_template('home.html', users=users)
 

@@ -30,6 +30,21 @@
     </tbody>
 </table>
 
+<div class="row">
+    {% for user in users %}
+    <div class="col-md-6">
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action active">
+              {{ user.name }}
+            </a>
+            {% for food in user.foods %}
+            <a href="#" class="list-group-item list-group-item-action"> {{ food.name }} </a>
+            {% endfor %}
+          </div>
+    </div>
+    {% endfor %}
+</div>
+
 
 <script>
     $(document).ready(function() {
