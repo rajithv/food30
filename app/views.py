@@ -6,19 +6,48 @@ This file creates your application.
 """
 
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from app.forms import UserForm
-from app.models import User
+from app.models import User, Food
 # import sqlite3
 
 ###
 # Routing for your application.
 ###
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def home():
     """Render website's home page."""
-    return render_template('home.html')
+    users = db.session.query(User).all()
+
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        food = request.form['food']
+
+        existing_food = Food.query.filter_by(name=food).first()
+        if existing_food:
+            flash('Food already exists')
+
+        else:
+            new_food = Food(food)
+            db.session.add(new_food)
+            db.session.commit()
+            flash('Food {} successfully added'.format(food))
+
+
+    return render_template('home.html', users=users)
+
+@app.route('/suggest-food', methods=['GET', 'POST'])
+def suggest_food():
+    term = request.args.get('term')
+    matching_foods = Food.query.filter(Food.name.like(f'%{term}%')).all()
+    suggestions = [food.name for food in matching_foods]
+    return jsonify(suggestions)
+
+
+@app.route('/test')
+def test():
+    return render_template('test.html')
 
 
 @app.route('/about/')
@@ -40,10 +69,9 @@ def add_user():
         if user_form.validate_on_submit():
             # Get validated data from form
             name = user_form.name.data # You could also have used request.form['name']
-            email = user_form.email.data # You could also have used request.form['email']
 
             # save user to database
-            user = User(name, email)
+            user = User(name)
             db.session.add(user)
             db.session.commit()
 
